@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { TextInput, TextInputProps, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { TextInput, TextInputProps, StyleSheet, View, Platform, Text } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,7 +8,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { SymbolView } from 'expo-symbols';
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
@@ -18,20 +17,17 @@ interface AnimatedInputProps extends TextInputProps {
 }
 
 export function AnimatedInput({ multiline, showChevron, style, ...props }: AnimatedInputProps) {
-  const [isFocused, setIsFocused] = useState(false);
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
 
   const focusAnim = useSharedValue(0);
 
   const handleFocus = (e: any) => {
-    setIsFocused(true);
     focusAnim.value = withSpring(1, { damping: 20, stiffness: 200 });
     props.onFocus?.(e);
   };
 
   const handleBlur = (e: any) => {
-    setIsFocused(false);
     focusAnim.value = withSpring(0, { damping: 20, stiffness: 200 });
     props.onBlur?.(e);
   };
@@ -40,38 +36,41 @@ export function AnimatedInput({ multiline, showChevron, style, ...props }: Anima
     const borderColor = interpolateColor(
       focusAnim.value,
       [0, 1],
-      ['#E5E5EA', theme.backgroundSelected] // soft gray to selected border
+      ['#E5E5EA', '#A0A0B0']
     );
-    
     return {
       borderColor,
-      transform: [{ scale: 1 + focusAnim.value * 0.01 }],
+      transform: [{ scale: 1 + focusAnim.value * 0.008 }],
     };
   });
 
   return (
-    <Animated.View style={[
-      styles.container, 
-      multiline ? styles.containerMultiline : undefined,
-      animatedContainerStyle, 
-      { backgroundColor: theme.background }
-    ]}>
+    <Animated.View
+      style={[
+        styles.container,
+        multiline ? styles.containerMultiline : undefined,
+        animatedContainerStyle,
+        { backgroundColor: theme.background },
+      ]}
+    >
       <AnimatedTextInput
         multiline={multiline}
         placeholderTextColor={theme.textSecondary}
         style={[
           styles.input,
           { color: theme.text },
-          multiline && styles.multiline,
+          multiline && styles.multilineInput,
           style,
+          // Suppress browser's default sharp focus ring — animated border handles it
+          Platform.OS === 'web' && ({ outlineStyle: 'none' } as any),
         ]}
         onFocus={handleFocus}
         onBlur={handleBlur}
         {...props}
       />
-      {showChevron && (
+      {showChevron && !multiline && (
         <View style={styles.chevronContainer}>
-          <SymbolView name="chevron.down" size={20} tintColor={theme.textSecondary} />
+          <Text style={[styles.chevronText, { color: theme.textSecondary }]}>›</Text>
         </View>
       )}
     </Animated.View>
@@ -80,32 +79,43 @@ export function AnimatedInput({ multiline, showChevron, style, ...props }: Anima
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 999, // Pill shape
+    borderRadius: 999,
     borderWidth: 2,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 24,
     height: 60,
+    overflow: 'hidden',
   },
   containerMultiline: {
     borderRadius: 24,
     height: undefined,
     alignItems: 'flex-start',
     paddingHorizontal: 0,
+    overflow: 'hidden',
   },
   input: {
     flex: 1,
     fontSize: 16,
     fontFamily: 'Lexend_400Regular',
-    paddingVertical: 14, // For android center alignment
+    paddingVertical: 0,
   },
-  multiline: {
+  multilineInput: {
     minHeight: 120,
     textAlignVertical: 'top',
     paddingHorizontal: 24,
     paddingTop: 20,
+    paddingBottom: 16,
   },
   chevronContainer: {
     paddingLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chevronText: {
+    fontSize: 24,
+    lineHeight: 28,
+    transform: [{ rotate: '90deg' }],
+    fontWeight: '300',
   },
 });

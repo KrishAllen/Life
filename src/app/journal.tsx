@@ -17,7 +17,7 @@ import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import { FieldLabel } from '@/components/ui/FieldLabel';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
-import { SymbolView } from 'expo-symbols';
+import { Text } from 'react-native';
 
 export default function JournalScreen() {
   const [date, setDate] = useState(new Date());
@@ -105,7 +105,7 @@ export default function JournalScreen() {
                     <ThemedText style={styles.chubbyButtonText}>
                       {date.toLocaleDateString()}
                     </ThemedText>
-                    <SymbolView name="xmark" size={16} tintColor={theme.text} />
+                    <Text style={{ fontSize: 16, color: theme.textSecondary }}>✕</Text>
                   </TouchableOpacity>
                   {showDatePicker && (
                     <DateTimePicker

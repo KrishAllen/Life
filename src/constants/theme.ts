@@ -28,25 +28,21 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    sans: 'Lexend_400Regular',
+    serif: 'Lexend_400Regular',
+    rounded: 'Lexend_400Regular',
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
+    sans: 'Lexend_400Regular',
+    serif: 'Lexend_400Regular',
+    rounded: 'Lexend_400Regular',
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
+    sans: 'Lexend_400Regular, var(--font-display)',
+    serif: 'Lexend_400Regular, var(--font-serif)',
+    rounded: 'Lexend_400Regular, var(--font-rounded)',
     mono: 'var(--font-mono)',
   },
 });

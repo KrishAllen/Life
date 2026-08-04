@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withDelay,
+  withSpring,
 } from 'react-native-reanimated';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Stack } from 'expo-router';
 
-import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedInput } from '@/components/ui/AnimatedInput';
-import { MoodSelector } from '@/components/ui/MoodSelector';
+import { ThemedView } from '@/components/themed-view';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { AnimatedInput } from '@/components/ui/AnimatedInput';
 import { FieldLabel } from '@/components/ui/FieldLabel';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { MoodSelector } from '@/components/ui/MoodSelector';
 import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Text } from 'react-native';
 
 export default function JournalScreen() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
+
   const [moodId, setMoodId] = useState<string | null>(null);
   const [summary, setSummary] = useState('');
   const [mainNote, setMainNote] = useState('');
@@ -45,17 +45,51 @@ export default function JournalScreen() {
     transform: [{ translateY: translateY.value }],
   }));
 
+  // const handleSave = async () => {
+  //   // Simulate save delay
+  //   await new Promise((resolve) => setTimeout(resolve, 800));
+  //   console.log('Saved entry:', { date, moodId, summary, mainNote, takeaway });
+
+  //   // Clear all fields after save
+  //   setMoodId(null);
+  //   setSummary('');
+  //   setMainNote('');
+  //   setTakeaway('');
+  //   setDate(new Date());
+  // };
+
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzWs_138qTLPbVy8Wz3XngRE2XGziBDvFFPYGtSXVJonysgmb27eg51s96dZPA-klHNPA/exec';
+
   const handleSave = async () => {
-    // Simulate save delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    console.log('Saved entry:', { date, moodId, summary, mainNote, takeaway });
-    
-    // Clear all fields after save
-    setMoodId(null);
-    setSummary('');
-    setMainNote('');
-    setTakeaway('');
-    setDate(new Date());
+    try {
+      // Google Apps Script rejects CORS preflight for application/json.
+      // Using mode:'no-cors' + Content-Type:'text/plain' bypasses the preflight
+      // while still delivering the JSON body to the script.
+      await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          date: date.toLocaleDateString(),
+          mood: moodId ?? '',
+          summary,
+          mainNote,
+          takeaway,
+        }),
+        mode: 'no-cors',
+      });
+
+      // Clear fields on success
+      setMoodId(null);
+      setSummary('');
+      setMainNote('');
+      setTakeaway('');
+      setDate(new Date());
+
+      Alert.alert('Saved! ✅', 'Your journal entry has been saved.');
+    } catch (error) {
+      console.error('Save failed:', error);
+      Alert.alert('Error', 'Could not save entry. Please try again.');
+    }
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -69,19 +103,19 @@ export default function JournalScreen() {
   return (
     <ThemedView style={[styles.container, { backgroundColor: '#FAFAFC' }]}>
       <Stack.Screen options={{ title: 'Journal', headerShadowVisible: false, headerStyle: { backgroundColor: '#FAFAFC' } }} />
-      
-      <KeyboardAvoidingView 
-        style={styles.keyboardView} 
+
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={100}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <Animated.View style={[styles.formContainer, animatedContainerStyle]}>
-            
+
             {/* Date Field (Required) */}
             <View style={styles.field}>
               <FieldLabel label="Date *" emoji="📅" emojiBgColor="#E8DEF8" />
@@ -98,8 +132,8 @@ export default function JournalScreen() {
                 </View>
               ) : (
                 <>
-                  <TouchableOpacity 
-                    style={[styles.chubbyButton, { backgroundColor: theme.background, borderColor: '#E5E5EA' }]} 
+                  <TouchableOpacity
+                    style={[styles.chubbyButton, { backgroundColor: theme.background, borderColor: '#E5E5EA' }]}
                     onPress={() => setShowDatePicker(true)}
                   >
                     <ThemedText style={styles.chubbyButtonText}>
